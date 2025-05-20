@@ -14,14 +14,14 @@ app.get('/get-token', async (req, res) => {
     const clientPayload = {
       client_data: {
         client_version: '1.2.18.564.g83d531e5',
-        client_id: 'd8a5ed958d274c2e8ee717e6a4b0971d',
+        client_id: '1e5a5aed00a042d6bd22adfa65f4cb1b',
         js_sdk_data: {
-          device_brand: 'unknown',
-          device_model: 'unknown',
-          os: 'windows',
-          os_version: 'NT 10.0',
+          device_brand: "Samsung",
+          device_model: "SM-G991B",
+          os: "android",
+          os_version: "12",
           device_id: uuidv4(),
-          device_type: 'computer'
+          device_type: 'phone'
         }
       }
     };
