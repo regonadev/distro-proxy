@@ -1,58 +1,73 @@
-const express = require('express');
-const axios = require('axios');
+// index.js - Spotify Mobile-API Proxy (sp_dc olmadan)
+
+import express from 'express';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+
 const app = express();
 app.use(express.json());
 
-app.post('/get-token', async (req, res) => {
-  const { sp_dc } = req.body;
-
-  console.log("📩 Gelen sp_dc:", sp_dc || "(boş)");
-
-  if (!sp_dc) {
-    return res.status(400).json({ error: "sp_dc is required" });
-  }
-
+// Mobil taklidiyle client_token ve bearer token alma
+app.get('/get-token', async (req, res) => {
   try {
-    const tokenRes = await axios.get(
-      "https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
+    // 1. Adım: client_token al
+    const clientPayload = {
+      client_data: {
+        client_version: '1.2.18.564.g83d531e5',
+        client_id: 'd8a5ed958d274c2e8ee717e6a4b0971d',
+        js_sdk_data: {
+          device_brand: 'unknown',
+          device_model: 'unknown',
+          os: 'windows',
+          os_version: 'NT 10.0',
+          device_id: uuidv4(),
+          device_type: 'computer'
+        }
+      }
+    };
+
+    const clientResp = await axios.post(
+      'https://clienttoken.spotify.com/v1/clienttoken',
+      clientPayload,
       {
         headers: {
-          Cookie: `sp_dc=${sp_dc}`,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-          "Accept": "application/json",
-          "Accept-Language": "en",
-          "App-Platform": "WebPlayer"
+          'Content-Type': 'application/json',
+          'Origin': 'https://open.spotify.com',
+          'Referer': 'https://open.spotify.com/'
         }
       }
     );
 
-    const bearer = tokenRes.data.accessToken;
+    const clientToken = clientResp.data.granted_token.token;
+
+    // 2. Adım: Bearer token al
+    const accessResp = await axios.get(
+      'https://open.spotify.com/get_access_token?reason=transport&productType=web_player',
+      {
+        headers: {
+          'Client-Token': clientToken,
+          'App-Platform': 'WebPlayer',
+          'User-Agent': 'Mozilla/5.0',
+          'Accept': 'application/json'
+        }
+      }
+    );
+
+    const bearer = accessResp.data.accessToken;
 
     if (!bearer) {
-      console.log("❌ Bearer alınamadı, token null.");
-      return res.status(500).json({ error: "Spotify token is null" });
+      return res.status(500).json({ error: 'Token alınamadı' });
     }
 
-    console.log("✅ Bearer Token:", bearer.slice(0, 40) + "...");
-
+    console.log('✅ Bearer alındı:', bearer.slice(0, 40) + '...');
     return res.json({ bearer });
-
-  } catch (err) {
-    console.log("❌ Spotify token alma hatası:", err.message);
-    if (err.response) {
-      console.log("🔎 Response status:", err.response.status);
-      console.log("🔎 Response body:", err.response.data);
-      return res.status(err.response.status).json({
-        error: "Spotify response error",
-        detail: err.response.data
-      });
-    } else {
-      return res.status(500).json({ error: "Unknown error", message: err.message });
-    }
+  } catch (e) {
+    console.log('❌ Hata:', e.message);
+    return res.status(500).json({ error: 'İstek başarısız', detail: e.message });
   }
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`🚀 Spotify proxy running on port ${port}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Spotify mobile proxy ayakta: http://localhost:${PORT}`);
 });
