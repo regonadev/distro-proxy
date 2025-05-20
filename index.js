@@ -1,5 +1,3 @@
-// index.js - Spotify Mobile-API Proxy (sp_dc olmadan)
-
 import express from 'express';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,21 +5,19 @@ import { v4 as uuidv4 } from 'uuid';
 const app = express();
 app.use(express.json());
 
-// Mobil taklidiyle client_token ve bearer token alma
 app.get('/get-token', async (req, res) => {
   try {
-    // 1. Adım: client_token al
     const clientPayload = {
       client_data: {
         client_version: '1.2.18.564.g83d531e5',
-        client_id: '1e5a5aed00a042d6bd22adfa65f4cb1b',
+        client_id: 'd8a5ed958d274c2e8ee717e6a4b0971d',
         js_sdk_data: {
-          device_brand: "Samsung",
-          device_model: "SM-G991B",
-          os: "android",
-          os_version: "12",
+          device_brand: 'unknown',
+          device_model: 'unknown',
+          os: 'windows',
+          os_version: 'NT 10.0',
           device_id: uuidv4(),
-          device_type: 'phone'
+          device_type: 'computer'
         }
       }
     };
@@ -38,9 +34,14 @@ app.get('/get-token', async (req, res) => {
       }
     );
 
-    const clientToken = clientResp.data.granted_token.token;
+    console.log("📥 clientResp.data:", JSON.stringify(clientResp.data, null, 2));
 
-    // 2. Adım: Bearer token al
+    const clientToken = clientResp.data?.granted_token?.token;
+
+    if (!clientToken) {
+      return res.status(500).json({ error: "Spotify client_token alınamadı", raw: clientResp.data });
+    }
+
     const accessResp = await axios.get(
       'https://open.spotify.com/get_access_token?reason=transport&productType=web_player',
       {
@@ -61,9 +62,15 @@ app.get('/get-token', async (req, res) => {
 
     console.log('✅ Bearer alındı:', bearer.slice(0, 40) + '...');
     return res.json({ bearer });
+
   } catch (e) {
-    console.log('❌ Hata:', e.message);
-    return res.status(500).json({ error: 'İstek başarısız', detail: e.message });
+    if (e.response) {
+      console.log('🔴 Spotify hata cevabı:', e.response.status, e.response.data);
+      return res.status(500).json({ error: 'Spotify cevabı hata verdi', detail: e.response.data });
+    } else {
+      console.log('❌ Hata:', e.message);
+      return res.status(500).json({ error: 'İstek başarısız', detail: e.message });
+    }
   }
 });
 
