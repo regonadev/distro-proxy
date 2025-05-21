@@ -40,7 +40,7 @@ async function fetchTokens() {
     } catch (e) {}
   });
 
-  await page.goto('https://open.spotify.com/track/6GyFP1nfCDB8lbD2bG0Hq9?si=f4fa63ba2f0c4b20', {
+  await page.goto('https://open.spotify.com/track/6GyFP1nfCDB8lbD2bG0Hq9', {
     waitUntil: 'networkidle2'
   });
 
