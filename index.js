@@ -12,6 +12,7 @@ const TOKEN_EXPIRY_MS = 55 * 60 * 1000; // 55 dakika cache
 async function fetchTokens() {
   const browser = await puppeteer.launch({
     headless: true,
+    executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-*/chrome', // 🟡 değişebilir (aşağıda açıklama)
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -46,10 +47,8 @@ async function fetchTokens() {
     }
   });
 
-  // İlgili Spotify parça sayfasına git (tokenlar burada tetikleniyor)
   await page.goto('https://open.spotify.com/track/6GyFP1nfCDB8lbD2bG0Hq9?si=f4fa63ba2f0c4b20', { waitUntil: 'networkidle2' });
 
-  // Eğer clientToken yakalanmadıysa manuel fetch yap
   if (!clientToken) {
     clientToken = await page.evaluate(async () => {
       const res = await fetch('https://clienttoken.spotify.com/v1/clienttoken', {
