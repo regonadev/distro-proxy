@@ -1,16 +1,13 @@
 {
   "name": "spotify-token-server",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.18.4",
     "puppeteer": "^24.9.0"
-  },
-  "engines": {
-    "node": ">=18"
   }
 }
