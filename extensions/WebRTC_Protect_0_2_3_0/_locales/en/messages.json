@@ -1,5 +1,0 @@
-{
-  "description": {
-    "message": "Hides your private and public IP addresses by configuring how WebRTC's network traffic is routed."
-  }
-}
